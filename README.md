@@ -51,6 +51,22 @@ To make the CRUD features work, follow these steps:
 
 ---
 
+## 🛰️ Deployment Guide
+
+### Option A: Railway (Easiest)
+1.  Connect your GitHub repository to [Railway.app](https://railway.app/).
+2.  Railway will automatically detect the `Procfile` and start the bot.
+3.  Add your `.env` variables under the **Variables** tab in Railway.
+
+### Option B: Docker (Robust)
+If you have Docker installed, simply run:
+```bash
+docker-compose up -d --build
+```
+The bot will start in the background and restart automatically if it crashes.
+
+---
+
 ## 🤖 Commands
 -   `!ping`: Check bot latency and uptime.
 -   `!help`: Show this beautiful list.
