@@ -1,9 +1,10 @@
 {
   "name": "dc-bot",
   "version": "1.0.0",
-  "description": "A modular, Python-powered Discord bot with integration for **Notion (CRUD)**, **Google Gemini (AI)**, and **Moderation Tooling**.",
+  "description": "BnB Bot — The internal operations layer for the Bits&Bytes Discord server.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
