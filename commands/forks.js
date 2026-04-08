@@ -12,8 +12,8 @@ module.exports = {
 		try {
 			const forks = await notion.getForks();
             
-            const active = forks.filter(f => f.properties.Status.select.name === 'Active');
-            const pending = forks.filter(f => f.properties.Status.select.name === 'Pending');
+            const active = forks.filter(f => f.properties?.Status?.select?.name === 'Active');
+            const pending = forks.filter(f => f.properties?.Status?.select?.name === 'Pending');
 
 			const embed = new EmbedBuilder()
 				.setTitle('🍴 Active Bits&Bytes Forks')
@@ -21,13 +21,13 @@ module.exports = {
                 .setTimestamp();
 
             let activeList = active.map(f => {
-                const city = f.properties.City.rich_text[0]?.text?.content;
-                const leadId = f.properties['Discord ID']?.rich_text[0]?.text?.content;
-                return `bitsnbytes-${city.toLowerCase()}  →  <@${leadId}>  (active)`;
+                const city = f.properties?.City?.rich_text?.[0]?.text?.content || 'Unknown';
+                const leadId = f.properties?.['Discord ID']?.rich_text?.[0]?.text?.content;
+                return `bitsnbytes-${city.toLowerCase()}  →  ${leadId ? `<@${leadId}>` : 'unknown lead'}  (active)`;
             }).join('\n');
 
             let pendingList = pending.map(f => {
-                const city = f.properties.City.rich_text[0]?.text?.content;
+                const city = f.properties?.City?.rich_text?.[0]?.text?.content || 'Unknown';
                 return `bitsnbytes-${city.toLowerCase()}  →  pending`;
             }).join('\n');
 

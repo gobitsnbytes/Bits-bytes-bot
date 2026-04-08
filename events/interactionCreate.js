@@ -14,11 +14,18 @@ module.exports = {
 			try {
 				await command.execute(interaction);
 			} catch (error) {
-				console.error(error);
-				if (interaction.replied || interaction.deferred) {
-					await interaction.followUp({ content: 'There was an error while executing this command!', flags: [MessageFlags.Ephemeral] });
-				} else {
-					await interaction.reply({ content: 'There was an error while executing this command!', flags: [MessageFlags.Ephemeral] });
+				console.error(`[COMMAND ERROR] /${interaction.commandName}:`, error);
+				
+				const errorMsg = 'There was an error while executing this command!';
+				
+				try {
+					if (interaction.replied || interaction.deferred) {
+						await interaction.followUp({ content: errorMsg, flags: [MessageFlags.Ephemeral] });
+					} else {
+						await interaction.reply({ content: errorMsg, flags: [MessageFlags.Ephemeral] });
+					}
+				} catch (innerError) {
+					console.error('[ERROR HANDLER FAIL] Could not send error reply:', innerError.message);
 				}
 			}
 		} else if (interaction.isModalSubmit()) {

@@ -8,12 +8,10 @@ module.exports = {
 
 		const rolesChannel = client.channels.cache.find(c => c.name === 'roles');
 		if (rolesChannel) {
-			// Delete old bot messages so a fresh one is posted
+			// Delete old bot messages concurrently
 			const messages = await rolesChannel.messages.fetch({ limit: 20 });
 			const botMessages = messages.filter(m => m.author.id === client.user.id);
-			for (const [, msg] of botMessages) {
-				await msg.delete().catch(() => {});
-			}
+			await Promise.all(botMessages.map(msg => msg.delete().catch(() => {})));
 
 			const embed = new EmbedBuilder()
 				.setTitle('🎯 Pick Your Interests')
@@ -25,9 +23,9 @@ module.exports = {
 
 			const sent = await rolesChannel.send({ embeds: [embed] });
 			const emojis = ['💻', '🎨', '🔬', '⚙️'];
-			for (const emoji of emojis) {
-				await sent.react(emoji);
-			}
+			
+			// React concurrently
+			await Promise.all(emojis.map(emoji => sent.react(emoji).catch(() => {})));
 			console.log('[ROLES] Posted interest roles picker.');
 		} else {
 			console.log('[WARNING] #roles channel not found.');

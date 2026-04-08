@@ -24,7 +24,7 @@ module.exports = {
 			}
 
             // 2. Remove @fork-lead role
-            const forkLeadId = fork.properties['Discord ID']?.rich_text[0]?.text?.content;
+            const forkLeadId = fork.properties?.['Discord ID']?.rich_text?.[0]?.text?.content;
             if (forkLeadId) {
                 const forkLeadRole = guild.roles.cache.find(r => r.name === 'fork-lead');
                 if (forkLeadRole) {
@@ -39,7 +39,7 @@ module.exports = {
 
 			// 3. Rename and lock channel
 			const channelName = city.toLowerCase().replace(/\s+/g, '-');
-			const cityChannel = guild.channels.cache.find(c => c.name === channelName);
+			const cityChannel = guild.channels.cache.find(c => c.name === channelName || c.name === `${channelName}-archived`);
 			if (cityChannel) {
 				await cityChannel.setName(`${channelName}-archived`);
 				await cityChannel.permissionOverwrites.edit(guild.roles.everyone, { SendMessages: false });
