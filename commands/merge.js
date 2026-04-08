@@ -15,7 +15,8 @@ module.exports = {
 		const city = interaction.options.getString('city');
 		const guild = interaction.guild;
 
-		await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+		const flags = config.PRIVACY.merge ? [MessageFlags.Ephemeral] : [];
+		await interaction.deferReply({ flags });
 
 		try {
 			// 1. Assign @fork-lead role
@@ -46,7 +47,26 @@ module.exports = {
 				]
 			});
 
-			await interaction.editReply(`✅ Successfully merged **@${user.tag}** as the lead for **${city}**.`);
+			const successEmbed = new EmbedBuilder()
+				.setTitle(`${config.EMOJIS.protocol} PROTOCOL_MERGE // ACCESS_KEY_GENERATED`)
+				.setDescription(`Synchronization complete. Credentials assigned to member: **<@${user.id}>**.`)
+				.addFields(
+					{ name: '⌬ NODE_LOCATION', value: `\`${city.toUpperCase()}\``, inline: true },
+					{ name: '⌬ SYSTEM_ID', value: `\`${channelName.toUpperCase()}\``, inline: true }
+				)
+				.setColor(config.COLORS.success)
+				.setThumbnail(interaction.guild.iconURL())
+				.setTimestamp()
+				.setFooter({ text: config.BRANDING.footerText });
+
+			const handbookButton = new ButtonBuilder()
+				.setLabel(config.BRANDING.documentationLabel)
+				.setURL(process.env.FORK_HANDBOOK_URL || 'https://notion.so')
+				.setStyle(ButtonStyle.Link);
+
+			const row = new ActionRowBuilder().addComponents(handbookButton);
+
+			await interaction.editReply({ embeds: [successEmbed], components: [row] });
 
 		} catch (error) {
 			console.error('[MERGE] Error:', error);

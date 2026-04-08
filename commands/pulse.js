@@ -14,17 +14,19 @@ module.exports = {
 		const updateText = interaction.options.getString('update');
 		const guild = interaction.guild;
 
+		const flags = config.PRIVACY.pulse ? [MessageFlags.Ephemeral] : [];
+
         // Check if @fork-lead
         const member = await guild.members.fetch(interaction.user.id);
         const forkLeadRole = guild.roles.cache.find(r => r.name === 'fork-lead');
         if (!forkLeadRole || !member.roles.cache.has(forkLeadRole.id)) {
             return await interaction.reply({ 
-                content: `${config.EMOJIS.error} Protocol breach: This command is reserved for **@fork-lead** authorization.`, 
-                flags: [MessageFlags.Ephemeral] 
+                content: `${config.EMOJIS.error} SYSTEM_ALERT: Command requires **@fork-lead** authorization level.`, 
+                flags
             });
         }
 
-		await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+		await interaction.deferReply({ flags });
 
 		try {
 			// 1. Post to #pulse

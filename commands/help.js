@@ -4,7 +4,7 @@ const config = require('../config');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('help')
-		.setDescription('Display information about all available commands.'),
+		.setDescription('Access the B&B Protocol reference manual.'),
 
 	async execute(interaction) {
 		const { commands } = interaction.client;
@@ -14,7 +14,7 @@ module.exports = {
 		const staffCmds = [];
 
 		commands.forEach(command => {
-			const entry = `\`/${command.data.name}\` — ${command.data.description}`;
+			const entry = `\`/${command.data.name.toUpperCase()}\` :: ${command.data.description}`;
 			if (['merge', 'archive'].includes(command.data.name)) {
 				staffCmds.push(entry);
 			} else if (['pulse', 'forks'].includes(command.data.name)) {
@@ -25,20 +25,20 @@ module.exports = {
 		});
 
 		const embed = new EmbedBuilder()
-			.setTitle(`${config.EMOJIS.help} Bits&Bytes Protocol | Help Center`)
-			.setDescription('Welcome to the **Bits&Bytes** auxiliary support system. Here are the available protocols:')
+			.setTitle(`${config.EMOJIS.help} BITS&BYTES_OS // CMD_REFERENCE_V${config.BRANDING.version || '2.0'}`)
+			.setDescription('Welcome to the **Bits&Bytes** core auxiliary system. Select a protocol to initialize:')
 			.setColor(config.COLORS.primary)
             .setThumbnail(interaction.guild.iconURL())
 			.addFields(
-				{ name: '🌐 PUBLIC ACCESS', value: publicCmds.join('\n') || '*None*' },
-				{ name: '🛠️ FORK OPERATIONS', value: forkCmds.join('\n') || '*None*' },
-				{ name: '🛡️ STAFF ONLY', value: staffCmds.join('\n') || '*None*' }
+				{ name: '🌐 PUBLIC_INTERFACE', value: publicCmds.join('\n') || '*EMPTY*' },
+				{ name: '🛠️ NODE_OPERATIONS', value: forkCmds.join('\n') || '*EMPTY*' },
+				{ name: '🛡️ ROOT_ACCESS_ONLY', value: staffCmds.join('\n') || '*EMPTY*' }
 			)
 			.setTimestamp()
             .setFooter({ text: config.BRANDING.footerText });
 
         const button = new ButtonBuilder()
-            .setLabel('Protocol Documentation ↗️')
+            .setLabel(config.BRANDING.documentationLabel)
             .setURL(process.env.FORK_HANDBOOK_URL || 'https://notion.so')
             .setStyle(ButtonStyle.Link);
 
@@ -47,7 +47,7 @@ module.exports = {
 		await interaction.reply({ 
             embeds: [embed], 
             components: [row],
-            flags: [MessageFlags.Ephemeral] 
+            flags: config.PRIVACY.help ? [MessageFlags.Ephemeral] : []
         });
 	},
 };

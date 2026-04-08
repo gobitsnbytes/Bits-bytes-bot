@@ -1,40 +1,54 @@
 /**
- * 🛰️ BITS&BYTES PROTOCOL - THEME MANAGEMENT CENTER
- * Use this file to manage all visual aspects of the bot.
+ * 🛰️ BITS&BYTES PROTOCOL - ELITE CONFIGURATION ENGINE
+ * Version: 2.0.0 (Tactical Overhaul)
  */
 
 module.exports = {
-	// 🎨 BRANDING & COLORS
+	// 🎨 TACTICAL PALETTE (Elite Tech Aesthetic)
 	COLORS: {
-		primary: '#3498DB',    // Electric Blue (Default)
-		success: '#2ECC71',    // Emerald Green
-		warning: '#F1C40F',    // Sun Flower Gold
-		error: '#E74C3C',      // Alizarin Red
-		neutral: '#95A5A6',    // Concrete Grey
+		primary: '#00F2FF',    // Atomic Cyan
+		secondary: '#1A1A1A',  // Deep Space Charcoal
+		success: '#00FF95',    // Matrix Green
+		warning: '#FFCC00',    // Alert Amber
+		error: '#FF0055',      // Protocol Breach Red
+		neutral: '#555555',    // Slate Grey
 	},
 
-	// 🛰️ EMOJIS & ICONS
+	// ⚛️ TACTICAL ICONOGRAPHY
 	EMOJIS: {
-		protocol: '🛰️',         // Symbol for the Protocol
-		node: '💻',             // Symbol for individual nodes
-		active: '🟢',           // Active status
-		pending: '🟠',          // Pending status
-		archived: '📁',         // Archived status
-		pulse: '⚡',            // Pulse/Activity
-		save: '💾',             // Save/Request
-		help: '🤖',             // Help bot
-		link: '↗️',            // External link
+		protocol: '⚛️',         // Protocol Core
+		node: '⌬',             // Hex Node
+		active: '○',           // Signal Strength - High
+		pending: '●',          // Signal Strength - Initializing
+		archived: '🗃️',         // Data Vault
+		pulse: '⌁',            // Bio-Pulse / Signal
+		save: '⬢',             // Storage / Request
+		help: '⚙️',             // System Config
+		link: '↗️',            // External Link
 	},
 
-	// 📄 EMBED DEFAULTS
+	// 📄 PROTOCOL BRANDING
 	BRANDING: {
-		footerText: 'Bits&Bytes Protocol | System v1.0',
-		version: '1.0.0',
+		footerText: 'BITS&BYTES // SECURE_PROTOCOL_V2.0.0',
+		documentationLabel: 'ACCESS_API_REFERENCE',
 	},
 
-	// 🖥️ UI SETTINGS
+	// 🖥️ SYSTEM INTERFACE SETTINGS
 	UI: {
-		useServerIcon: true,    // Always use server icon as thumbnail
-		terminalStyle: true,    // Use code blocks for a geeky terminal look
+		useServerIcon: true,    // Identity verification
+		terminalStyle: true,    // Tactical monospace interface
+		minimalist: true,       // Strip unnecessary fluff
+	},
+
+	// 🛡️ SECURITY & PRIVACY MANAGEMENT
+	// Set any command to 'false' to make its output public to the channel.
+	// Set to 'true' to make it visible only to the user (ephemeral).
+	PRIVACY: {
+		forks: true,
+		help: true,
+		pulse: true,
+		archive: true,
+		merge: true,
+		'fork-request': true,
 	}
 };

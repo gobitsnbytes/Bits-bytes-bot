@@ -15,7 +15,8 @@ module.exports = {
 		const reason = interaction.options.getString('reason');
 		const guild = interaction.guild;
 
-		await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+		const flags = config.PRIVACY.archive ? [MessageFlags.Ephemeral] : [];
+		await interaction.deferReply({ flags });
 
 		try {
 			// 1. Find the fork by city

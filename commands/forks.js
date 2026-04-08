@@ -5,10 +5,11 @@ const config = require('../config');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('forks')
-		.setDescription('List all active and pending Bits&Bytes forks.'),
+		.setDescription('View technical topology of the Bits&Bytes network.'),
 
 	async execute(interaction) {
-		await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+		const flags = config.PRIVACY.forks ? [MessageFlags.Ephemeral] : [];
+		await interaction.deferReply({ flags });
 
 		try {
 			const forks = await notion.getForks();
@@ -30,54 +31,51 @@ module.exports = {
                 .filter(f => f.properties?.Status?.select?.name === 'Pending');
 
 			const embed = new EmbedBuilder()
-				.setTitle(`${config.EMOJIS.protocol} NODE TOPOLOGY: NETWORK STATUS`)
+				.setTitle(`${config.EMOJIS.protocol} NODE_TOPOLOGY // NET_STATUS_RECAP`)
 				.setColor(config.COLORS.primary)
                 .setTimestamp()
-                .setFooter({ 
-                    text: config.BRANDING.footerText, 
-                    iconURL: interaction.guild.iconURL() 
-                });
+                .setFooter({ text: config.BRANDING.footerText });
 
             if (config.UI.useServerIcon) {
                 embed.setThumbnail(interaction.guild.iconURL());
             }
 
-            // Formatting list as "Terminal" style
+            // Signal Readout Formatting
             let activeList = active.map(f => {
-                const city = f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content || 
+                const city = (f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content || 
                              f.properties?.["Fork Name"]?.title?.[0]?.text?.content || 
-                             'Unknown';
+                             'UNKNOWN').toUpperCase();
                 const leadId = f.properties?.['Discord ID']?.rich_text?.[0]?.text?.content;
                 const leadName = f.properties?.["What's your name?"]?.rich_text?.[0]?.text?.content;
                 
-                const nodeName = `bitsnbytes-${city.toLowerCase().replace(/\s+/g, '-')}`.padEnd(25);
-                const leadDisplay = leadId ? `<@${leadId}>` : (leadName || 'unknown');
+                const label = `${config.EMOJIS.node} [${city}]`.padEnd(22, '.');
+                const leadDisplay = leadId ? `<@${leadId}>` : (leadName || 'ANONYMOUS');
                 
-                return `\`${nodeName}\` ${config.EMOJIS.active} ONLINE  -> ${leadDisplay}`;
-            }).join('\n') || '`NO_ACTIVE_NODES_FOUND`';
+                return `\`${label}\` ${config.EMOJIS.active} **ONLINE** // ${leadDisplay}`;
+            }).join('\n') || '`NO_ACTIVE_PROTOCOLS_FOUND`';
 
             let pendingList = pending.map(f => {
-                const city = f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content || 
+                const city = (f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content || 
                              f.properties?.["Fork Name"]?.title?.[0]?.text?.content || 
-                             'Pending';
+                             'PENDING').toUpperCase();
                 const leadName = f.properties?.["What's your name?"]?.rich_text?.[0]?.text?.content;
                 
-                const nodeName = `bitsnbytes-${city.toLowerCase().replace(/\s+/g, '-')}`.padEnd(25);
+                const label = `${config.EMOJIS.node} [${city}]`.padEnd(22, '.');
                 const leadDisplay = leadName ? `(${leadName})` : '';
                 
-                return `\`${nodeName}\` ${config.EMOJIS.pending} DISCOVERY -> pending ${leadDisplay}`;
-            }).join('\n') || '`NO_PENDING_REQUESTS`';
+                return `\`${label}\` ${config.EMOJIS.pending} **DISCOVERY** ${leadDisplay}`;
+            }).join('\n') || '`NO_PENDING_SYNCHRONIZATIONS`';
 
             embed.addFields(
-                { name: '🛰️ ACTIVE PROTOCOLS', value: activeList },
-                { name: '⏳ PENDING SYNCHRONIZATION', value: pendingList }
+                { name: '⚛️ ACTIVE_PROTOCOLS', value: activeList },
+                { name: '⏳ NETWORK_DISCOVERY', value: pendingList }
             );
 
 			await interaction.editReply({ embeds: [embed] });
 
 		} catch (error) {
-			console.error('[FORKS ERROR]', error);
-			await interaction.editReply({ content: '❌ There was an error while fetching the topology map.' });
+			console.error('[TOPOLOGY_ERROR]', error);
+			await interaction.editReply({ content: `${config.EMOJIS.error} SYSTEM_FAILURE: Unable to synchronize topology map.` });
 		}
 	},
 };
