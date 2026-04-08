@@ -14,9 +14,10 @@ module.exports = {
             
             // Filter out "ghost" records (rows that have a status but no city or name data)
             const isValidFork = (f) => {
-                const city = f.properties?.City?.rich_text?.[0]?.text?.content;
-                const name = f.properties?.Name?.title?.[0]?.text?.content;
-                return city || name; // Must have at least one identifying string
+                const city = f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content;
+                const name = f.properties?.["Fork Name"]?.title?.[0]?.text?.content;
+                const altCity = f.properties?.City?.rich_text?.[0]?.text?.content;
+                return city || name || altCity;
             };
 
             const active = forks
@@ -33,8 +34,9 @@ module.exports = {
                 .setTimestamp();
 
             let activeList = active.map(f => {
-                const city = f.properties?.City?.rich_text?.[0]?.text?.content || 
-                             f.properties?.Name?.title?.[0]?.text?.content || 
+                const city = f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content || 
+                             f.properties?.["Fork Name"]?.title?.[0]?.text?.content || 
+                             f.properties?.City?.rich_text?.[0]?.text?.content ||
                              'Unknown';
                 
                 const leadName = f.properties?.["What's your name?"]?.rich_text?.[0]?.text?.content;
@@ -47,8 +49,9 @@ module.exports = {
             }).join('\n');
 
             let pendingList = pending.map(f => {
-                const city = f.properties?.City?.rich_text?.[0]?.text?.content || 
-                             f.properties?.Name?.title?.[0]?.text?.content || 
+                const city = f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content || 
+                             f.properties?.["Fork Name"]?.title?.[0]?.text?.content || 
+                             f.properties?.City?.rich_text?.[0]?.text?.content ||
                              'Pending';
                 
                 const leadName = f.properties?.["What's your name?"]?.rich_text?.[0]?.text?.content;
