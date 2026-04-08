@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const notion = require('../lib/notion');
+const config = require('../config');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -29,47 +30,54 @@ module.exports = {
                 .filter(f => f.properties?.Status?.select?.name === 'Pending');
 
 			const embed = new EmbedBuilder()
-				.setTitle('🍴 Active Bits&Bytes Forks')
-				.setColor('#3498DB')
-                .setTimestamp();
+				.setTitle(`${config.EMOJIS.protocol} NODE TOPOLOGY: NETWORK STATUS`)
+				.setColor(config.COLORS.primary)
+                .setTimestamp()
+                .setFooter({ 
+                    text: config.BRANDING.footerText, 
+                    iconURL: interaction.guild.iconURL() 
+                });
 
+            if (config.UI.useServerIcon) {
+                embed.setThumbnail(interaction.guild.iconURL());
+            }
+
+            // Formatting list as "Terminal" style
             let activeList = active.map(f => {
                 const city = f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content || 
                              f.properties?.["Fork Name"]?.title?.[0]?.text?.content || 
-                             f.properties?.City?.rich_text?.[0]?.text?.content ||
                              'Unknown';
-                
-                const leadName = f.properties?.["What's your name?"]?.rich_text?.[0]?.text?.content;
                 const leadId = f.properties?.['Discord ID']?.rich_text?.[0]?.text?.content;
+                const leadName = f.properties?.["What's your name?"]?.rich_text?.[0]?.text?.content;
                 
-                // Use Lead Name if Discord ID is missing
-                const leadDisplay = leadId ? `<@${leadId}>` : (leadName || 'unknown lead');
+                const nodeName = `bitsnbytes-${city.toLowerCase().replace(/\s+/g, '-')}`.padEnd(25);
+                const leadDisplay = leadId ? `<@${leadId}>` : (leadName || 'unknown');
                 
-                return `bitsnbytes-${city.toLowerCase().replace(/\s+/g, '-')}  →  ${leadDisplay}  (active)`;
-            }).join('\n');
+                return `\`${nodeName}\` ${config.EMOJIS.active} ONLINE  -> ${leadDisplay}`;
+            }).join('\n') || '`NO_ACTIVE_NODES_FOUND`';
 
             let pendingList = pending.map(f => {
                 const city = f.properties?.["What city are you in?"]?.rich_text?.[0]?.text?.content || 
                              f.properties?.["Fork Name"]?.title?.[0]?.text?.content || 
-                             f.properties?.City?.rich_text?.[0]?.text?.content ||
                              'Pending';
-                
                 const leadName = f.properties?.["What's your name?"]?.rich_text?.[0]?.text?.content;
+                
+                const nodeName = `bitsnbytes-${city.toLowerCase().replace(/\s+/g, '-')}`.padEnd(25);
                 const leadDisplay = leadName ? `(${leadName})` : '';
                 
-                return `bitsnbytes-${city.toLowerCase().replace(/\s+/g, '-')}  →  pending ${leadDisplay}`;
-            }).join('\n');
+                return `\`${nodeName}\` ${config.EMOJIS.pending} DISCOVERY -> pending ${leadDisplay}`;
+            }).join('\n') || '`NO_PENDING_REQUESTS`';
 
-            if (activeList) embed.addFields({ name: 'Active', value: activeList });
-            if (pendingList) embed.addFields({ name: 'Pending', value: pendingList });
-            
-            embed.setFooter({ text: `Total: ${active.length} active | ${pending.length} pending` });
+            embed.addFields(
+                { name: '🛰️ ACTIVE PROTOCOLS', value: activeList },
+                { name: '⏳ PENDING SYNCHRONIZATION', value: pendingList }
+            );
 
 			await interaction.editReply({ embeds: [embed] });
 
 		} catch (error) {
-			console.error('[FORKS] Error:', error);
-			await interaction.editReply('❌ There was an error while fetching the forks list.');
+			console.error('[FORKS ERROR]', error);
+			await interaction.editReply({ content: '❌ There was an error while fetching the topology map.' });
 		}
 	},
 };

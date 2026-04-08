@@ -1,4 +1,5 @@
-const { Events, MessageFlags } = require('discord.js');
+const { Events, MessageFlags, EmbedBuilder } = require('discord.js');
+const config = require('../config');
 
 module.exports = {
 	name: Events.InteractionCreate,
@@ -16,13 +17,17 @@ module.exports = {
 			} catch (error) {
 				console.error(`[COMMAND ERROR] /${interaction.commandName}:`, error);
 				
-				const errorMsg = 'There was an error while executing this command!';
+				const errorEmbed = new EmbedBuilder()
+					.setTitle(`${config.EMOJIS.error} Protocol Breach`)
+					.setDescription('A system error has occurred during synchronization. Please contact a network administrator.')
+					.setColor(config.COLORS.error)
+					.setFooter({ text: config.BRANDING.footerText });
 				
 				try {
 					if (interaction.replied || interaction.deferred) {
-						await interaction.followUp({ content: errorMsg, flags: [MessageFlags.Ephemeral] });
+						await interaction.followUp({ embeds: [errorEmbed], flags: [MessageFlags.Ephemeral] });
 					} else {
-						await interaction.reply({ content: errorMsg, flags: [MessageFlags.Ephemeral] });
+						await interaction.reply({ embeds: [errorEmbed], flags: [MessageFlags.Ephemeral] });
 					}
 				} catch (innerError) {
 					console.error('[ERROR HANDLER FAIL] Could not send error reply:', innerError.message);

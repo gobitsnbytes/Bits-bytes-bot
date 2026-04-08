@@ -1,64 +1,53 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const config = require('../config');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('help')
-		.setDescription('List all available commands and bot features.'),
+		.setDescription('Display information about all available commands.'),
 
 	async execute(interaction) {
-		const commands = interaction.client.commands;
+		const { commands } = interaction.client;
 		
 		const publicCmds = [];
 		const forkCmds = [];
 		const staffCmds = [];
 
 		commands.forEach(command => {
-			const name = `\`/${command.data.name}\``;
-			const description = command.data.description;
-			const entry = `${name} — ${description}`;
-
-			// Categorization logic
+			const entry = `\`/${command.data.name}\` — ${command.data.description}`;
 			if (['merge', 'archive'].includes(command.data.name)) {
 				staffCmds.push(entry);
-			} else if (command.data.name === 'pulse') {
+			} else if (['pulse', 'forks'].includes(command.data.name)) {
 				forkCmds.push(entry);
 			} else {
 				publicCmds.push(entry);
 			}
 		});
 
-		const helpEmbed = new EmbedBuilder()
-			.setColor('#5865F2') // Bits&Bytes Secondary Blue
-			.setTitle('🍴 bits&bytes bot — operations layer')
-			.setDescription('we run hackathons, design/dev squads, and real products. here is how you can use the bot:')
+		const embed = new EmbedBuilder()
+			.setTitle(`${config.EMOJIS.help} Bits&Bytes Protocol | Help Center`)
+			.setDescription('Welcome to the **Bits&Bytes** auxiliary support system. Here are the available protocols:')
+			.setColor(config.COLORS.primary)
+            .setThumbnail(interaction.guild.iconURL())
 			.addFields(
-				{ 
-					name: '🌐 public commands', 
-					value: publicCmds.join('\n') || '*no public commands available*' 
-				},
-				{ 
-					name: '🛠️ fork operations', 
-					value: forkCmds.join('\n') || '*no fork commands available*' 
-				},
-				{ 
-					name: '🛡️ staff only', 
-					value: staffCmds.join('\n') || '*no staff commands available*' 
-				},
-				{ 
-					name: '✨ other features', 
-					value: [
-						'→ **reaction roles**: head to <#roles> to pick your city/interests.',
-						'→ **welcome dms**: new members get an automatic intro guide.',
-						'→ **automod**: keeping the server clean and safe.'
-					].join('\n')
-				}
+				{ name: '🌐 PUBLIC ACCESS', value: publicCmds.join('\n') || '*None*' },
+				{ name: '🛠️ FORK OPERATIONS', value: forkCmds.join('\n') || '*None*' },
+				{ name: '🛡️ STAFF ONLY', value: staffCmds.join('\n') || '*None*' }
 			)
-			.setFooter({ 
-				text: 'built for bits&bytes — gobitsnbytes.org', 
-				iconURL: interaction.client.user.displayAvatarURL() 
-			})
-			.setTimestamp();
+			.setTimestamp()
+            .setFooter({ text: config.BRANDING.footerText });
 
-		return await interaction.reply({ embeds: [helpEmbed], ephemeral: true });
+        const button = new ButtonBuilder()
+            .setLabel('Protocol Documentation ↗️')
+            .setURL(process.env.FORK_HANDBOOK_URL || 'https://notion.so')
+            .setStyle(ButtonStyle.Link);
+
+        const row = new ActionRowBuilder().addComponents(button);
+
+		await interaction.reply({ 
+            embeds: [embed], 
+            components: [row],
+            flags: [MessageFlags.Ephemeral] 
+        });
 	},
 };

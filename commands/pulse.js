@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const notion = require('../lib/notion');
+const config = require('../config');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -15,8 +16,12 @@ module.exports = {
 
         // Check if @fork-lead
         const member = await guild.members.fetch(interaction.user.id);
-        if (!member.roles.cache.some(r => r.name === 'fork-lead')) {
-            return await interaction.reply({ content: "🚫 This command is only for @fork-lead users.", flags: [MessageFlags.Ephemeral] });
+        const forkLeadRole = guild.roles.cache.find(r => r.name === 'fork-lead');
+        if (!forkLeadRole || !member.roles.cache.has(forkLeadRole.id)) {
+            return await interaction.reply({ 
+                content: `${config.EMOJIS.error} Protocol breach: This command is reserved for **@fork-lead** authorization.`, 
+                flags: [MessageFlags.Ephemeral] 
+            });
         }
 
 		await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
@@ -26,13 +31,13 @@ module.exports = {
 			const pulseChannel = guild.channels.cache.find(c => c.name === 'pulse');
 			if (pulseChannel) {
 				const pulseEmbed = new EmbedBuilder()
-					.setTitle(`📡 Fork Pulse — Bitsnbytes-${city.toLowerCase()}`)
-					.addFields(
-						{ name: 'Lead', value: `<@${interaction.user.id}>`, inline: true },
-						{ name: 'Update', value: updateText },
-						{ name: 'Date', value: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) },
-					)
-					.setColor('#2ECC71');
+					.setTitle(`${config.EMOJIS.pulse} INBOUND PULSE: ${city.toUpperCase()}`)
+					.setDescription(updateText)
+					.setColor(config.COLORS.primary)
+					.setThumbnail(interaction.guild.iconURL())
+					.setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+					.setTimestamp()
+                    .setFooter({ text: config.BRANDING.footerText });
 
 				await pulseChannel.send({ embeds: [pulseEmbed] });
 			}
@@ -43,11 +48,18 @@ module.exports = {
 				await notion.updatePulse(fork.id, new Date().toISOString());
 			}
 
-			await interaction.editReply(`✅ Successfully posted pulse update for **${city}**.`);
+			const successEmbed = new EmbedBuilder()
+				.setTitle(`${config.EMOJIS.protocol} PULSE SYNCHRONIZED`)
+				.setDescription(`Your update for **${city}** has been broadcast to the network.`)
+				.setColor(config.COLORS.success)
+				.setTimestamp()
+                .setFooter({ text: config.BRANDING.footerText });
+
+			await interaction.editReply({ embeds: [successEmbed] });
 
 		} catch (error) {
-			console.error('[PULSE] Error:', error);
-			await interaction.editReply('❌ There was an error while posting your pulse update.');
+			console.error('[PULSE ERROR]', error);
+			await interaction.editReply({ content: `❌ Protocol breach during pulse: ${error.message}` });
 		}
 	},
 };

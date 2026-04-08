@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const config = require('../config');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -6,19 +7,19 @@ module.exports = {
 		.setDescription('Request to start a new Bits&Bytes fork in your city.'),
 	async execute(interaction) {
 		const embed = new EmbedBuilder()
-			.setTitle('💾 Initializing New Fork Request...')
-			.setDescription("ready to host your own node? click the button below to fill out the official **Bits&Bytes** fork registry form. let's build something epic! ⚡️")
-			.setColor('#3498DB')
+			.setTitle(`${config.EMOJIS.save} INITIALIZING NEW FORK REQUEST`)
+			.setDescription("Ready to host your own node? Please complete the official **Bits&Bytes** fork registry form to start the synchronization process. Let's build something epic! ⚡️")
+			.setColor(config.COLORS.primary)
+            .setThumbnail(interaction.guild.iconURL())
 			.addFields(
-				{ name: 'Step 1', value: 'Click the "Open Form" button below.', inline: true },
-				{ name: 'Step 2', value: 'Complete the Notion form.', inline: true },
-				{ name: 'Step 3', value: 'Our team will reach out on Discord! 🛰️', inline: true }
+				{ name: 'IDENTIFICATION', value: 'Complete the Notion form.', inline: true },
+				{ name: 'SYNCHRONIZATION', value: 'Our team will reach out via Discord! 🛰️', inline: true }
 			)
-			.setFooter({ text: 'Bits&Bytes Protocol | Fork Registry', iconURL: interaction.guild.iconURL() })
+			.setFooter({ text: config.BRANDING.footerText })
 			.setTimestamp();
 
 		const button = new ButtonBuilder()
-			.setLabel('Open Form ↗️')
+			.setLabel('Complete Form ↗️')
 			.setURL('https://perfect-dinghy-781.notion.site/33a49ed2fc33800984e7c28ca3d7cd2a?pvs=105')
 			.setStyle(ButtonStyle.Link);
 
