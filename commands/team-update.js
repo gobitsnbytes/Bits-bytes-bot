@@ -62,16 +62,22 @@ module.exports = {
 			const memberName = member.username;
 
 			if (action === 'add') {
-				// Check if member already has this role
+				// Check if member already exists in this fork
 				const existingMember = await notion.findTeamMember(forkId, discordId);
-				if (existingMember && existingMember.properties.Role?.select?.name === role) {
-					return await interaction.editReply({
-						content: `${config.EMOJIS.warning} <@${discordId}> already has the **${role}** role in ${city}.`,
-					});
+				if (existingMember) {
+					// Member exists - update their role instead of creating duplicate
+					const existingRole = existingMember.properties.Role?.select?.name;
+					if (existingRole === role) {
+						return await interaction.editReply({
+							content: `${config.EMOJIS.warning} <@${discordId}> already has the **${role}** role in ${city}.`,
+						});
+					}
+					// Update existing member's role
+					await notion.updateTeamMember(existingMember.id, role, memberName);
+				} else {
+					// New member - add to team
+					await notion.addTeamMember(forkId, discordId, role, memberName);
 				}
-
-				// Add team member
-				await notion.addTeamMember(forkId, discordId, role, memberName);
 
 				// Get updated team for validation
 				const teamMembers = await notion.getTeamMembers(forkId);

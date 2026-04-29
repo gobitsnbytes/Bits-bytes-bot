@@ -38,6 +38,34 @@ module.exports = {
 			const onboardingStatus = await notion.getOnboardingStatus(fork.id);
 
 			// Build fork data for badge calculation
+			// Calculate active months streak (consecutive months with at least one report or event)
+			const activeMonths = new Set();
+			reports.forEach(r => {
+				if (r.submittedDate) {
+					const d = new Date(r.submittedDate);
+					activeMonths.add(`${d.getFullYear()}-${d.getMonth()}`);
+				}
+			});
+			events.filter(e => e.status === 'Completed').forEach(e => {
+				if (e.date) {
+					const d = new Date(e.date);
+					activeMonths.add(`${d.getFullYear()}-${d.getMonth()}`);
+				}
+			});
+			
+			// Count consecutive months from now backwards
+			let activeMonthsStreak = 0;
+			const now = new Date();
+			for (let i = 0; i < 12; i++) {
+				const checkDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+				const key = `${checkDate.getFullYear()}-${checkDate.getMonth()}`;
+				if (activeMonths.has(key)) {
+					activeMonthsStreak++;
+				} else if (i > 0) { // Allow current month to be incomplete
+					break;
+				}
+			}
+
 			const forkData = {
 				health,
 				totalEvents: events.filter(e => e.status === 'Completed').length,
@@ -47,7 +75,8 @@ module.exports = {
 				reportsOnTime: reports.filter(r => r.status === 'on-time').length,
 				partnerships: fork.properties['Partnerships Count']?.number || 0,
 				onboardingComplete: onboardingStatus.progress === 7,
-				maxEventAttendance: Math.max(...events.map(e => e.attendees || 0), 0),
+				maxEventAttendance: Math.max(...events.map(e => e.actualAttendees || 0), 0),
+				activeMonthsStreak,
 			};
 
 			// Determine earned badges

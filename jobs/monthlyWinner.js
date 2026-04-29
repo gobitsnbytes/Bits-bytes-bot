@@ -23,7 +23,8 @@ module.exports = (client) => {
 			const now = new Date();
 			const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 			const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-			const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+			// Use exclusive upper bound (start of current month) to include entire last month
+			const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
 			for (const fork of activeForks) {
 				const city = fork.properties.City?.rich_text?.[0]?.text?.content || 
@@ -36,14 +37,15 @@ module.exports = (client) => {
 				const reports = await notion.getReports(fork.id);
 				const events = await notion.getEvents(fork.id);
 
+				// Use exclusive upper bound (< endOfLastMonth instead of <=)
 				const reportsLastMonth = reports.filter(r => {
 					const submitted = new Date(r.submittedDate);
-					return submitted >= startOfLastMonth && submitted <= endOfLastMonth;
+					return submitted >= startOfLastMonth && submitted < endOfLastMonth;
 				}).length;
 
 				const eventsCompletedLastMonth = events.filter(e => {
 					const eventDate = new Date(e.date);
-					return e.status === 'Completed' && eventDate >= startOfLastMonth && eventDate <= endOfLastMonth;
+					return e.status === 'Completed' && eventDate >= startOfLastMonth && eventDate < endOfLastMonth;
 				}).length;
 
 				// Calculate monthly score
@@ -79,12 +81,15 @@ module.exports = (client) => {
 
 			const winner = forkScores[0];
 
-			// Award winner
+			// Award winner - track success/failure
+			let awardSucceeded = false;
 			try {
 				await notion.updateForkPoints(winner.fork.id, gamification.POINTS.MONTHLY_WINNER);
 				await notion.awardBadge(winner.fork.id, 'monthly_champion');
+				awardSucceeded = true;
 			} catch (e) {
 				console.error('[JOB] Failed to award winner:', e.message);
+				// Continue to announce winner, but without rewards field
 			}
 
 			// Build announcement embed
@@ -105,12 +110,20 @@ module.exports = (client) => {
 				inline: false,
 			});
 
-			// Prize
-			embed.addFields({
-				name: '🎁 REWARDS',
-				value: `+${gamification.POINTS.MONTHLY_WINNER} points\n👑 Monthly Champion badge`,
-				inline: false,
-			});
+			// Prize - only show if award succeeded
+			if (awardSucceeded) {
+				embed.addFields({
+					name: '🎁 REWARDS',
+					value: `+${gamification.POINTS.MONTHLY_WINNER} points\n👑 Monthly Champion badge`,
+					inline: false,
+				});
+			} else {
+				embed.addFields({
+					name: '⚠️ REWARDS_PENDING',
+					value: 'Points and badge could not be awarded automatically. Please contact an administrator.',
+					inline: false,
+				});
+			}
 
 			// Top 3
 			if (forkScores.length >= 2) {

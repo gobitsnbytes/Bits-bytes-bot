@@ -13,7 +13,8 @@ module.exports = (client) => {
 			const guild = client.guilds.cache.first();
 			if (!guild) return;
 
-			const leadsCouncil = guild.channels.cache.find(c => c.name === 'leads-council');
+			// Only find text-based channels
+			const leadsCouncil = guild.channels.cache.find(c => c.name === 'leads-council' && c.isTextBased?.());
 
 			for (const fork of activeForks) {
 				const onboardingStatus = await notion.getOnboardingStatus(fork.id);
@@ -33,7 +34,8 @@ module.exports = (client) => {
 				// Generate and send reminder
 				const reminderMessage = onboarding.generateReminderMessage(onboardingStatus, city);
 				
-				if (leadsCouncil && leadId) {
+				// Only send if leadsCouncil is text-based and we have a leadId
+				if (leadsCouncil && leadsCouncil.isTextBased?.() && leadId) {
 					try {
 						await leadsCouncil.send(`hey <@${leadId}> — ${reminderMessage}`);
 					} catch (e) {

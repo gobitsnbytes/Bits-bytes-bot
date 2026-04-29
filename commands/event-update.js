@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const notion = require('../lib/notion');
 const events = require('../lib/events');
+const gamification = require('../lib/gamification');
 const config = require('../config');
 
 module.exports = {
@@ -100,13 +101,33 @@ module.exports = {
 				inline: false,
 			});
 
-			// Points for completing event
+			// Points for completing event - actually award the points
 			if (status === 'Completed') {
-				embed.addFields({
-					name: '🎉 EVENT_COMPLETED',
-					value: '+10 points awarded for hosting an event!',
-					inline: false,
-				});
+				try {
+					// Get the event to find the fork
+					const event = await notion.getEvents().then(events => events.find(e => e.id === eventId));
+					if (event && event.forkId) {
+						await notion.updateForkPoints(event.forkId, gamification.POINTS.EVENT_COMPLETED);
+						embed.addFields({
+							name: '🎉 EVENT_COMPLETED',
+							value: `+${gamification.POINTS.EVENT_COMPLETED} points awarded for hosting an event!`,
+							inline: false,
+						});
+					} else {
+						embed.addFields({
+							name: '🎉 EVENT_COMPLETED',
+							value: 'Event marked as complete. Points will be awarded by the monthly review.',
+							inline: false,
+						});
+					}
+				} catch (e) {
+					console.error('[EVENT_UPDATE] Failed to award points:', e.message);
+					embed.addFields({
+						name: '⚠️ EVENT_COMPLETED',
+						value: 'Event marked as complete, but points could not be awarded automatically.',
+						inline: false,
+					});
+				}
 			}
 
 			await interaction.editReply({ embeds: [embed] });

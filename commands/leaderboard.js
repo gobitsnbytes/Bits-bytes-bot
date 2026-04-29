@@ -57,23 +57,14 @@ module.exports = {
 					e.status === 'Completed' && new Date(e.date) >= startOfMonth
 				).length;
 
-				// Get stored points
+				// Get stored points - use persisted Monthly Points as single source of truth
 				const storedPoints = fork.properties.Points?.number || 0;
+				const persistedMonthlyPoints = fork.properties['Monthly Points']?.number || 0;
 
-				// Calculate based on period with on-time bonus and late penalty
-				let monthlyPoints = 0;
-				for (const report of reportsThisMonth) {
-					monthlyPoints += gamification.POINTS.REPORT_SUBMISSION;
-					// Apply on-time bonus or late penalty based on report status
-					if (report.status === 'on-time') {
-						monthlyPoints += gamification.POINTS.REPORT_ON_TIME;
-					} else if (report.status === 'late') {
-						monthlyPoints += gamification.POINTS.REPORT_LATE;
-					}
-				}
-				monthlyPoints += eventsCompletedThisMonth * gamification.POINTS.EVENT_COMPLETED;
-
-				const totalPoints = storedPoints + monthlyPoints;
+				// Use the persisted monthly points which includes all point sources
+				// (reports, events, onboarding, team, pulse, partnership, health)
+				const monthlyPoints = persistedMonthlyPoints;
+				const totalPoints = storedPoints;
 				const level = gamification.getLevelFromPoints(totalPoints);
 
 				forkPoints.push({

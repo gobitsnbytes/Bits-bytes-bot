@@ -61,12 +61,17 @@ module.exports = {
 				});
 			}
 
+			// Get pre-update onboarding status to detect transition
+			const preStatus = await notion.getOnboardingStatus(fork.id);
+			const wasComplete = onboarding.isOnboardingComplete(preStatus);
+
 			// Update the onboarding step
 			await notion.updateOnboardingStep(fork.id, step, true);
 
 			// Get updated status
 			const onboardingStatus = await notion.getOnboardingStatus(fork.id);
 			const statusLabel = onboarding.getOnboardingStatusLabel(onboardingStatus);
+			const isNowComplete = onboarding.isOnboardingComplete(onboardingStatus);
 
 			const embed = new EmbedBuilder()
 				.setTitle(`${config.EMOJIS.protocol} ONBOARDING_UPDATE // ${city.toUpperCase()}`)
@@ -87,7 +92,7 @@ module.exports = {
 			});
 
 			// Show remaining steps if any
-			if (!onboarding.isOnboardingComplete(onboardingStatus)) {
+			if (!isNowComplete) {
 				const nextStep = onboarding.getNextPendingStep(onboardingStatus);
 				if (nextStep) {
 					embed.addFields({
@@ -103,16 +108,18 @@ module.exports = {
 					inline: false,
 				});
 
-				// Award points for completing onboarding
-				try {
-					await notion.updateForkPoints(fork.id, 20);
-					embed.addFields({
-						name: '🏆 BONUS',
-						value: '+20 points awarded for completing onboarding!',
-						inline: false,
-					});
-				} catch (e) {
-					// Points might not be set up, ignore
+				// Award points only if this is a transition from incomplete to complete
+				if (!wasComplete && isNowComplete) {
+					try {
+						await notion.updateForkPoints(fork.id, 20);
+						embed.addFields({
+							name: '🏆 BONUS',
+							value: '+20 points awarded for completing onboarding!',
+							inline: false,
+						});
+					} catch (e) {
+						// Points might not be set up, ignore
+					}
 				}
 			}
 
