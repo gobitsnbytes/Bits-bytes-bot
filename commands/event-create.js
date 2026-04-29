@@ -1,0 +1,148 @@
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
+const notion = require('../lib/notion');
+const events = require('../lib/events');
+const config = require('../config');
+
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('event-create')
+		.setDescription('Create a new event proposal')
+		.addStringOption(option =>
+			option
+				.setName('title')
+				.setDescription('Event name')
+				.setRequired(true))
+		.addStringOption(option =>
+			option
+				.setName('city')
+				.setDescription('Fork city')
+				.setRequired(true))
+		.addStringOption(option =>
+			option
+				.setName('date')
+				.setDescription('Event date (YYYY-MM-DD)')
+				.setRequired(true))
+		.addStringOption(option =>
+			option
+				.setName('type')
+				.setDescription('Event type')
+				.setRequired(true)
+				.addChoices(
+					{ name: '🛠️ Workshop', value: 'workshop' },
+					{ name: '💻 Hackathon', value: 'hackathon' },
+					{ name: '👥 Meetup', value: 'meetup' },
+					{ name: '📌 Other', value: 'other' },
+				))
+		.addStringOption(option =>
+			option
+				.setName('description')
+				.setDescription('Event details')
+				.setRequired(true))
+		.addIntegerOption(option =>
+			option
+				.setName('expected-attendees')
+				.setDescription('Expected headcount')
+				.setRequired(false)
+				.setMinValue(1)),
+
+	async execute(interaction) {
+		const flags = config.PRIVACY['event-create'] ? [MessageFlags.Ephemeral] : [];
+		await interaction.deferReply({ flags });
+
+		try {
+			const title = interaction.options.getString('title');
+			const city = interaction.options.getString('city');
+			const dateStr = interaction.options.getString('date');
+			const type = interaction.options.getString('type');
+			const description = interaction.options.getString('description') || '';
+			const expectedAttendees = interaction.options.getInteger('expected-attendees') || 0;
+
+			// Validate date format
+			const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+			if (!dateRegex.test(dateStr)) {
+				return await interaction.editReply({
+					content: `${config.EMOJIS.error} Invalid date format. Please use YYYY-MM-DD (e.g., 2024-05-15).`,
+				});
+			}
+
+			// Find the fork
+			const fork = await notion.findForkByCity(city);
+			if (!fork) {
+				return await interaction.editReply({
+					content: `${config.EMOJIS.error} Fork not found: ${city}`,
+				});
+			}
+
+			// Create the event
+			const event = await notion.createEvent({
+				title,
+				forkId: fork.id,
+				date: dateStr,
+				type,
+				description,
+				expectedAttendees,
+				createdBy: interaction.user.id,
+			});
+
+			// Award points for creating event
+			try {
+				await notion.updateForkPoints(fork.id, 2);
+			} catch (e) {
+				// Points might not be set up, ignore
+			}
+
+			const embed = new EmbedBuilder()
+				.setTitle(`${config.EMOJIS.protocol} EVENT_CREATED // ${title.toUpperCase()}`)
+				.setColor(config.COLORS.success)
+				.setTimestamp()
+				.setFooter({ text: config.BRANDING.footerText });
+
+			const typeEmoji = events.getTypeEmoji(type);
+			embed.addFields({
+				name: '✅ EVENT_DETAILS',
+				value: `${typeEmoji} **Type**: ${type.charAt(0).toUpperCase() + type.slice(1)}\n` +
+					`📍 **Fork**: ${city.toUpperCase()}\n` +
+					`📅 **Date**: ${dateStr}\n` +
+					`💡 **Status**: Idea\n` +
+					`👥 **Expected**: ${expectedAttendees || 'TBD'}`,
+				inline: false,
+			});
+
+			if (description) {
+				embed.addFields({
+					name: '📝 DESCRIPTION',
+					value: description.substring(0, 1000),
+					inline: false,
+				});
+			}
+
+			embed.addFields({
+				name: '📋 NEXT_STEPS',
+				value: 'Use `/event-update` to advance the event through stages:\n' +
+					'Idea → Planned → Approved → Executing → Completed',
+				inline: false,
+			});
+
+			embed.addFields({
+				name: '🏆 POINTS',
+				value: '+2 points awarded for creating an event!',
+				inline: false,
+			});
+
+			await interaction.editReply({ embeds: [embed] });
+
+		} catch (error) {
+			console.error('[EVENT_CREATE_ERROR]', error);
+			
+			if (error.message.includes('NOTION_EVENTS_DB not configured')) {
+				return await interaction.editReply({
+					content: `${config.EMOJIS.error} Events database not configured. Please set NOTION_EVENTS_DB in environment.`,
+				});
+			}
+
+			await interaction.editReply({
+				content: `${config.EMOJIS.error} SYSTEM_FAILURE: Unable to create event.`,
+			});
+		}
+	},
+};

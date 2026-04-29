@@ -86,10 +86,26 @@ client.once('ready', async () => {
 // Initialize background jobs
 console.log('[BOOT] Initializing jobs...');
 try {
+	// Original jobs
 	const staleCheck = require('./jobs/staleCheck');
 	const weeklyBrief = require('./jobs/weeklyBrief');
 	staleCheck(client);
 	weeklyBrief(client);
+
+	// New Phase 1-3 jobs
+	const healthWeekly = require('./jobs/healthWeekly');
+	const onboardingCheck = require('./jobs/onboardingCheck');
+	const reportReminders = require('./jobs/reportReminders');
+	const reminderCheck = require('./jobs/reminderCheck');
+	const monthlyWinner = require('./jobs/monthlyWinner');
+
+	healthWeekly(client);
+	onboardingCheck(client);
+	reportReminders(client);
+	reminderCheck(client);
+	monthlyWinner(client);
+
+	console.log('[BOOT] All jobs initialized successfully.');
 } catch (err) {
 	console.error('[BOOT ERROR] Failed to initialize jobs:', err.message);
 }
