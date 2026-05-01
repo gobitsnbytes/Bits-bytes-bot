@@ -83,16 +83,38 @@ client.once('ready', async () => {
 	}
 });
 
-// Initialize background jobs
+// Initialize background jobs with isolated error handling
 console.log('[BOOT] Initializing jobs...');
-try {
-	const staleCheck = require('./jobs/staleCheck');
-	const weeklyBrief = require('./jobs/weeklyBrief');
-	staleCheck(client);
-	weeklyBrief(client);
-} catch (err) {
-	console.error('[BOOT ERROR] Failed to initialize jobs:', err.message);
+
+/**
+ * Safely start a job module - prevents one broken job from aborting all others
+ * @param {string} jobPath - Path to the job module
+ * @param {Object} client - Discord client
+ * @param {string} jobName - Human-readable job name for logging
+ */
+function safeStartJob(jobPath, client, jobName) {
+	try {
+		const job = require(jobPath);
+		job(client);
+		console.log(`[BOOT] ${jobName} initialized successfully.`);
+	} catch (err) {
+		console.error(`[BOOT ERROR] Failed to initialize ${jobName}:`, err.message);
+	}
 }
+
+// Original jobs
+safeStartJob('./jobs/staleCheck', client, 'staleCheck');
+safeStartJob('./jobs/weeklyBrief', client, 'weeklyBrief');
+
+// New Phase 1-3 jobs
+safeStartJob('./jobs/healthWeekly', client, 'healthWeekly');
+safeStartJob('./jobs/onboardingCheck', client, 'onboardingCheck');
+safeStartJob('./jobs/reportReminders', client, 'reportReminders');
+safeStartJob('./jobs/reminderCheck', client, 'reminderCheck');
+safeStartJob('./jobs/monthlyWinner', client, 'monthlyWinner');
+safeStartJob('./jobs/reportLateUpdater', client, 'reportLateUpdater');
+
+console.log('[BOOT] Job initialization complete.');
 
 // Log in
 console.log('[BOOT] Attempting login...');

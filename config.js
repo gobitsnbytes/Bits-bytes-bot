@@ -25,6 +25,24 @@ module.exports = {
 		save: '⬢',             // Storage / Request
 		help: '⚙️',             // System Config
 		link: '↗️',            // External Link
+		// New emojis for extended features
+		success: '✅',          // Success indicator
+		warning: '⚠️',          // Warning indicator
+		error: '❌',            // Error indicator
+		health: '📊',           // Health/Analytics
+		team: '👥',             // Team
+		event: '📅',            // Events
+		report: '📝',           // Reports
+		badge: '🏅',            // Badges/Achievements
+		reminder: '🔔',         // Reminders
+		onboarding: '📋',       // Onboarding
+		leaderboard: '🏆',      // Leaderboard
+		points: '⭐',           // Points
+		calendar: '📆',         // Calendar
+		city: '🏙️',             // City/Location
+		github: '🐙',           // GitHub
+		website: '🌐',          // Website
+		partnership: '🤝',      // Partnership
 	},
 
 	// 📄 PROTOCOL BRANDING
@@ -44,6 +62,7 @@ module.exports = {
 	// Set any command to 'false' to make its output public to the channel.
 	// Set to 'true' to make it visible only to the user (ephemeral).
 	PRIVACY: {
+		// Original commands
 		forks: true,
 		help: true,
 		pulse: true,
@@ -51,5 +70,22 @@ module.exports = {
 		merge: true,
 		'fork-request': true,
 		'view-forks': false,
+		// New Phase 1 commands
+		'fork-health': false,      // Public - shows network health
+		'team-update': true,       // Private - team management
+		'team-view': false,        // Public - shows team structure
+		'fork-status': false,      // Public - shows fork dashboard
+		// New Phase 2 commands
+		'report-submit': true,     // Private - report submission
+		'report-status': false,    // Public - shows report status
+		'event-create': true,      // Private - event creation
+		'event-update': true,      // Private - event updates
+		'event-status': false,     // Public - shows event pipeline
+		'event-calendar': false,   // Public - shows network calendar
+		'onboarding-status': false,// Public - shows onboarding progress
+		'onboarding-complete': true,// Private - staff command
+		// New Phase 3 commands
+		leaderboard: false,        // Public - shows points leaderboard
+		'fork-badges': false,      // Public - shows achievements
 	}
 };
