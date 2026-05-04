@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js'
 const notion = require('../lib/notion');
 const onboarding = require('../lib/onboarding');
 const config = require('../config');
+const logger = require('../lib/logger');
 
 // Staff role ID for permission check
 const STAFF_ROLE_ID = '1490410540361580554';
@@ -126,7 +127,7 @@ module.exports = {
 			await interaction.editReply({ embeds: [embed] });
 
 		} catch (error) {
-			console.error('[ONBOARDING_COMPLETE_ERROR]', error);
+			logger.command(interaction, 'ERROR', error);
 			await interaction.editReply({
 				content: `${config.EMOJIS.error} SYSTEM_FAILURE: Unable to update onboarding step.`,
 			});

@@ -14,8 +14,8 @@ module.exports = {
 			}
 
 			try {
-				logger.command(interaction, 'EXECUTE');
 				await command.execute(interaction);
+				logger.command(interaction, 'SUCCESS');
 			} catch (error) {
 				logger.command(interaction, 'ERROR', error);
 				
