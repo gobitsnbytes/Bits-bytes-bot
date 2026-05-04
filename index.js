@@ -3,6 +3,7 @@ const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Partials, REST, Routes } = require('discord.js');
 require('dotenv').config();
 const logger = require('./lib/logger');
+const { getGitInfo } = require('./lib/git');
 
 const client = new Client({
 	intents: [
@@ -50,7 +51,6 @@ for (const file of eventFiles) {
 		} else {
 			client.on(event.name, (...args) => event.execute(...args));
 		}
-		}
 	} catch (err) {
 		logger.error(`Failed to load event ${file}`, err);
 	}
@@ -79,6 +79,14 @@ client.once('ready', async () => {
 				{ body: commands },
 			);
 			console.log(`[COMMANDS] Registered ${data.length} global commands.`);
+		}
+
+		// Log Git Info on Boot
+		const gitInfo = getGitInfo();
+		if (gitInfo.available) {
+			logger.boot(`System Restarted // Commit: ${gitInfo.hash}`, `Title: ${gitInfo.title}\nBy: ${gitInfo.author}`);
+		} else {
+			logger.boot('System Restarted // Version info unavailable');
 		}
 	} catch (error) {
 		logger.error('Failed to register slash commands', error);

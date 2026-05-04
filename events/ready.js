@@ -5,6 +5,7 @@ module.exports = {
 	name: Events.ClientReady,
 	once: true,
 	async execute(client) {
+		logger.init(client); // Re-init to trigger flush now that we are ready
 		logger.boot(`Logged in as ${client.user.tag}`);
 
 		const rolesChannel = client.channels.cache.find(c => c.name === 'roles');
