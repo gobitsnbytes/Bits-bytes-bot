@@ -32,7 +32,7 @@ module.exports = {
 						await interaction.reply({ embeds: [errorEmbed], flags: [MessageFlags.Ephemeral] });
 					}
 				} catch (innerError) {
-					logger.error('Could not send error reply', innerError);
+					logger.error('Critical: Could not send error response to user', innerError);
 				}
 			}
 		} else if (interaction.isModalSubmit()) {
